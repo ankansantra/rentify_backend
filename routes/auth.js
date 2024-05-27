@@ -1,24 +1,11 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const multer = require("multer");
 
 const User = require("../models/User");
 
-/* Configuration Multer for File Upload */
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public/uploads/"); // Store uploaded files in the 'uploads' folder
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname); // Use the original file name
-  },
-});
-
-const upload = multer({ storage });
-
 /* USER REGISTER */
-router.post("/register", upload.single("profileImage"), async (req, res) => {
+router.post("/register", async (req, res) => {
   try {
     /* Take all information from the form */
     const { firstName, lastName, email, password, phoneNumber } = req.body;
@@ -27,16 +14,6 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
     if (phoneNumber.length !== 10) {
       return res.status(400).json({ message: "Phone number must be exactly 10 digits." });
     }
-
-    /* The uploaded file is available as req.file */
-    const profileImage = req.file;
-
-    if (!profileImage) {
-      return res.status(400).send("No file uploaded");
-    }
-
-    /* path to the uploaded profile photo */
-    const profileImagePath = profileImage.path;
 
     /* Check if user exists */
     const existingUser = await User.findOne({ email });
@@ -55,7 +32,6 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
       email,
       password: hashedPassword,
       phoneNumber,
-      profileImagePath,
     });
 
     /* Save the new User */
